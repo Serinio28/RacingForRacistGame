@@ -332,7 +332,7 @@ update_status ModuleGame::Update()
 	}
 
 	// TODO 5: S increases the static friction coefficient. Past 1.0, back to 0
-	if (IsKeyPressed(KEY_S))
+	if (IsKeyPressed(KEY_ONE))
 	{
 		App->physics->static_friction += 0.1f;
 		if (App->physics->static_friction > 1.05f) // float sums: 1.0 may be 1.0000001
@@ -340,7 +340,7 @@ update_status ModuleGame::Update()
 	}
 
 	// TODO 6: D increases the dynamic friction coefficient. Past 1.0, back to 0
-	if (IsKeyPressed(KEY_D))
+	if (IsKeyPressed(KEY_TWO))
 	{
 		App->physics->dynamic_friction += 0.1f;
 		if (App->physics->dynamic_friction > 1.05f)
@@ -354,17 +354,7 @@ update_status ModuleGame::Update()
 		ray.y = GetMouseY();
 	}
 
-	if (IsKeyPressed(KEY_ONE))
-	{
-		Circle* c = new Circle(App->physics, GetMouseX(), GetMouseY(), circle);
-		c->body->listener = this;
-		entities.push_back(c);
-	}
-
-	if (IsKeyPressed(KEY_TWO))
-	{
-		entities.push_back(new Box(App->physics, GetMouseX(), GetMouseY(), box));
-	}
+	
 
 
 	entities.push_back(new Carretera(App->physics, 0, 0, rick));
