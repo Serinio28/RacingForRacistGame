@@ -141,41 +141,68 @@ private:
 	Texture2D texture;
 };
 
-class Chain : public PhysicEntity
+class Coche : public PhysicEntity
 {
 public:
-	static constexpr int points[24] = {
-		-38, 80,
-		-44, -54,
-		-16, -60,
-		-16, -17,
-		19, -19,
-		19, -79,
-		61, -77,
-		57, 73,
-		17, 78,
-		20, 16,
-		-25, 13,
-		-9, 72
-	};
+	// Same push for every ball: a = F / m, heavier balls accelerate less
+	static constexpr float push_force = 100.0f; // N, to the right
 
-	Chain(ModulePhysics* physics, int _x, int _y)
-		: PhysicEntity(physics->CreateChain(_x, _y, points, 24))
+	// Seconds before the ball is destroyed
+	static constexpr double lifetime = 10.0;
+
+	Coche(ModulePhysics* physics, int _x, int _y, float _mass, Texture2D _texture)
+		: PhysicEntity(physics->CreateCircle(_x, _y, Radius(_mass), Density(_mass)))
+		, mass(_mass)
+		, texture(_texture)
 	{
 
+	}
+
+	// TODO 3: Heavier balls are bigger
+	// Same material: area grows with mass, so radius grows with sqrt(mass)
+	// 1 kg -> 10 px, 100 kg -> 100 px
+	static int Radius(float mass)
+	{
+		return (int)(10.0f * sqrtf(mass));
+	}
+
+	// mass = density * area, area in m^2
+	static float Density(float mass)
+	{
+		float radius = PIXEL_TO_METERS(Radius(mass));
+		return mass / (b2_pi * radius * radius);
 	}
 
 	void Update() override
 	{
-		// No texture: press F1 to see it
+		int x, y;
+		body->GetPosition(x, y);
+
+		int radius = Radius(mass);
+
+		Rectangle source = { 0.0f, 0.0f, (float)texture.width, (float)texture.height };
+		Rectangle dest = { (float)x, (float)y, (float)radius * 2.0f, (float)radius * 2.0f };
+		Vector2 origin = { (float)radius, (float)radius };
+		DrawTexturePro(texture, source, dest, origin, body->GetRotation() * RAD2DEG, WHITE);
+
+		const char* text = TextFormat("%d kg", (int)mass);
+		DrawText(text, x - MeasureText(text, 20) / 2, y - 10, 20, BLACK);
 	}
+
+public:
+	float mass;
+	Timer life;
+
+private:
+	Texture2D texture;
 };
 
-class Rick : public PhysicEntity
+
+class Carretera : public PhysicEntity
 {
 public:
 	// Pivot 0, 0
-	static constexpr int rick_head[64] = {
+	static constexpr int carretera[64] = {
 		14, 36,
 		42, 40,
 		40, 0,
@@ -210,8 +237,8 @@ public:
 		30, 62
 	};
 
-	Rick(ModulePhysics* physics, int _x, int _y, Texture2D _texture)
-		: PhysicEntity(physics->CreateChain(_x, _y, rick_head, 64))
+	Carretera(ModulePhysics* physics, int _x, int _y, Texture2D _texture)
+		: PhysicEntity(physics->CreateChain(_x, _y, carretera, 64))
 		, texture(_texture)
 	{
 
