@@ -144,33 +144,11 @@ private:
 class Coche : public PhysicEntity
 {
 public:
-	// Same push for every ball: a = F / m, heavier balls accelerate less
-	static constexpr float push_force = 100.0f; // N, to the right
-
-	// Seconds before the ball is destroyed
-	static constexpr double lifetime = 10.0;
-
-	Coche(ModulePhysics* physics, int _x, int _y, float _mass, Texture2D _texture)
-		: PhysicEntity(physics->CreateCircle(_x, _y, Radius(_mass), Density(_mass)))
-		, mass(_mass)
+	Coche(ModulePhysics* physics, int _x, int _y, Texture2D _texture)
+		: PhysicEntity(physics->CreateRectangle(_x, _y, 50, 25))
 		, texture(_texture)
 	{
 
-	}
-
-	// TODO 3: Heavier balls are bigger
-	// Same material: area grows with mass, so radius grows with sqrt(mass)
-	// 1 kg -> 10 px, 100 kg -> 100 px
-	static int Radius(float mass)
-	{
-		return (int)(10.0f * sqrtf(mass));
-	}
-
-	// mass = density * area, area in m^2
-	static float Density(float mass)
-	{
-		float radius = PIXEL_TO_METERS(Radius(mass));
-		return mass / (b2_pi * radius * radius);
 	}
 
 	void Update() override
@@ -178,20 +156,13 @@ public:
 		int x, y;
 		body->GetPosition(x, y);
 
-		int radius = Radius(mass);
+		Color tint = body->Contains(GetMouseX(), GetMouseY()) ? RED : WHITE;
 
 		Rectangle source = { 0.0f, 0.0f, (float)texture.width, (float)texture.height };
-		Rectangle dest = { (float)x, (float)y, (float)radius * 2.0f, (float)radius * 2.0f };
-		Vector2 origin = { (float)radius, (float)radius };
-		DrawTexturePro(texture, source, dest, origin, body->GetRotation() * RAD2DEG, WHITE);
-
-		const char* text = TextFormat("%d kg", (int)mass);
-		DrawText(text, x - MeasureText(text, 20) / 2, y - 10, 20, BLACK);
+		Rectangle dest = { (float)x, (float)y, (float)texture.width, (float)texture.height };
+		Vector2 origin = { (float)texture.width / 2.0f, (float)texture.height / 2.0f };
+		DrawTexturePro(texture, source, dest, origin, body->GetRotation() * RAD2DEG, tint);
 	}
-
-public:
-	float mass;
-	Timer life;
 
 private:
 	Texture2D texture;
@@ -395,15 +366,8 @@ update_status ModuleGame::Update()
 		entities.push_back(new Box(App->physics, GetMouseX(), GetMouseY(), box));
 	}
 
-	if (IsKeyPressed(KEY_THREE))
-	{
-		entities.push_back(new Chain(App->physics, GetMouseX(), GetMouseY()));
-	}
 
-	if (IsKeyPressed(KEY_FOUR))
-	{
-		entities.push_back(new Rick(App->physics, GetMouseX(), GetMouseY(), rick));
-	}
+	entities.push_back(new Carretera(App->physics, 0, 0, rick));
 
 	if (IsKeyPressed(KEY_BACKSPACE))
 	{
