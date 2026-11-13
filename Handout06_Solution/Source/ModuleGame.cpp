@@ -15,6 +15,13 @@ enum BallColor
 	BALL_GHOST
 };
 
+enum CarColor
+{
+	CAR_RED,
+	CAR_BLUE,
+	CAR_BLACK
+};
+
 // TODO 5: Category flags, one bit each. Keep 0x0001 for DEFAULT: the rest of the scene
 enum PhysicCategory
 {
@@ -206,41 +213,112 @@ private:
 	Texture2D texture;
 };
 
-class Chain : public PhysicEntity
+
+
+
+class Coche : public PhysicEntity
 {
 public:
-	static constexpr int points[24] = {
-		-38, 80,
-		-44, -54,
-		-16, -60,
-		-16, -17,
-		19, -19,
-		19, -79,
-		61, -77,
-		57, 73,
-		17, 78,
-		20, 16,
-		-25, 13,
-		-9, 72
-	};
+	// Same push for every ball: a = F / m, heavier balls accelerate less
+	static constexpr float push_force = 100.0f; // N, to the right
 
-	Chain(ModulePhysics* physics, int _x, int _y)
-		: PhysicEntity(physics->CreateChain(_x, _y, points, 24))
+	// Seconds before the ball is destroyed
+	static constexpr double lifetime = 10.0;
+
+	// TODO 1: Initial velocity, in m/s
+	// TODO 7: Send the collision filter of its colour
+	Coche(ModulePhysics* physics, int _x, int _y, float _mass, CarColor _color2, Texture2D _texture, b2Vec2 velocity = b2Vec2_zero)
+		: PhysicEntity(physics->CreateCircle(_x, _y, Radius(_mass), Density(_mass), Category(_color2), Mask(_color2), Group(_color2)))
+		, mass(_mass)
+		, color2(_color2)
+		, texture(_texture)
 	{
+		body->body->SetLinearVelocity(velocity);
+	}
 
+	// Heavier balls are bigger
+	// Same material: area grows with mass, so radius grows with sqrt(mass)
+	// 1 kg -> 10 px, 100 kg -> 100 px
+	static int Radius(float mass)
+	{
+		return (int)(10.0f * sqrtf(mass));
+	}
+
+	// mass = density * area, area in m^2
+	static float Density(float mass)
+	{
+		float radius = PIXEL_TO_METERS(Radius(mass));
+		return mass / (b2_pi * radius * radius);
+	}
+
+	// TODO 7: Red balls collide with red balls, ghosts and the scene. Same for blue
+	// Ghosts collide with everything
+	static uint16 Category(CarColor color2)
+	{
+		switch (color2)
+		{
+		case CAR_RED: return CATEGORY_RED;
+		case CAR_BLUE: return CATEGORY_BLUE;
+		default: return CATEGORY_GHOST;
+		}
+	}
+
+	static uint16 Mask(CarColor color2)
+	{
+		switch (color2)
+		{
+		case CAR_RED: return CATEGORY_DEFAULT | CATEGORY_RED | CATEGORY_GHOST;
+		case CAR_BLUE: return CATEGORY_DEFAULT | CATEGORY_BLUE | CATEGORY_GHOST;
+		default: return CATEGORY_DEFAULT | CATEGORY_RED | CATEGORY_BLUE | CATEGORY_GHOST;
+		}
+	}
+
+	// TODO 8: Ghosts share a negative group: they never touch each other, whatever their mask says
+	static int16 Group(CarColor color2)
+	{
+		return (color2 == CAR_BLACK) ? GROUP_GHOSTS : 0;
+	}
+
+	Color Tint() const
+	{
+		switch (color2)
+		{
+		case CAR_RED: return Color{ 255, 110, 110, 255 };
+		case CAR_BLUE: return Color{ 110, 150, 255, 255 };
+		default: return Fade(WHITE, 0.4f);
+		}
 	}
 
 	void Update() override
 	{
-		// No texture: press F1 to see it
+		int x, y;
+		body->GetPosition(x, y);
+
+		int radius = Radius(mass);
+
+
+		const char* text = TextFormat("%d kg", (int)mass);
+		DrawText(text, x - MeasureText(text, 20) / 2, y - 10, 20, BLACK);
 	}
+
+public:
+	float mass;
+	CarColor color2;
+
+private:
+	Texture2D texture;
 };
 
-class Rick : public PhysicEntity
+
+
+
+
+
+class Carretera : public PhysicEntity
 {
 public:
 	// Pivot 0, 0
-	static constexpr int rick_head[64] = {
+	static constexpr int carretera[64] = {
 		14, 36,
 		42, 40,
 		40, 0,
@@ -275,8 +353,8 @@ public:
 		30, 62
 	};
 
-	Rick(ModulePhysics* physics, int _x, int _y, Texture2D _texture)
-		: PhysicEntity(physics->CreateChain(_x, _y, rick_head, 64))
+	Carretera(ModulePhysics* physics, int _x, int _y, Texture2D _texture)
+		: PhysicEntity(physics->CreateChain(_x, _y, carretera, 64))
 		, texture(_texture)
 	{
 
@@ -326,6 +404,9 @@ bool ModuleGame::Start()
 	sensor->listener = this;
 
 	spawn_timer.Start();
+
+	entities.push_back(new Carretera(App->physics, 0, 0, rick));
+
 
 	return ret;
 }
@@ -463,15 +544,7 @@ update_status ModuleGame::Update()
 		entities.push_back(new Box(App->physics, GetMouseX(), GetMouseY(), box));
 	}
 
-	if (IsKeyPressed(KEY_THREE))
-	{
-		entities.push_back(new Chain(App->physics, GetMouseX(), GetMouseY()));
-	}
-
-	if (IsKeyPressed(KEY_FOUR))
-	{
-		entities.push_back(new Rick(App->physics, GetMouseX(), GetMouseY(), rick));
-	}
+	
 
 	if (IsKeyPressed(KEY_BACKSPACE))
 	{
