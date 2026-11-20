@@ -402,7 +402,7 @@ bool ModuleGame::Start()
 	circle = LoadTexture("Assets/wheel.png");
 	box = LoadTexture("Assets/crate.png");
 	rick = LoadTexture("Assets/rick_head.png");
-	Coche_Rojo = LoadTexture("Assets / coche_rojo.png");
+	Coche_Rojo = LoadTexture("Assets/coche_rojo.png");
 
 	bonus_fx = App->audio->LoadFx("Assets/bonus.wav");
 
@@ -412,7 +412,7 @@ bool ModuleGame::Start()
 
 	spawn_timer.Start();
 
-	entities.push_back(new Coche(App->physics, 100, 100, rick));
+	entities.push_back(new Coche(App->physics, 100, 100, Coche_Rojo));
 	entities.push_back(new Carretera(App->physics, 0, 0, rick));
 
 
