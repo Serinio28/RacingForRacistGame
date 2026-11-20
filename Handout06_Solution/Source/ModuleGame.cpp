@@ -221,12 +221,12 @@ class Coche : public PhysicEntity
 public:
 	// Same push for every ball: a = F / m, heavier balls accelerate less
 	static constexpr float push_force = 0.0f; // N, to the right
-	b2Vec2 direction = { 0, 1 };
 	float speed = 0;
+	float maxspeed = 10;
 
 	// Seconds before the ball is destroyed
 	static constexpr double lifetime = 10.0;
-
+	
 	// TODO 1: Initial velocity, in m/s
 	// TODO 7: Send the collision filter of its colour
 	Coche(ModulePhysics* physics, int _x, int _y, Texture2D _texture, b2Vec2 velocity = b2Vec2_zero)
@@ -301,9 +301,13 @@ public:
 		Vector2 origin = { (float)Coche_Rojo.width / 2.0f, (float)Coche_Rojo.height / 2.0f };
 		DrawTexturePro(Coche_Rojo, source, dest, origin, body->GetRotation() * RAD2DEG, RED);
 
-		
+		b2Vec2 direction = { cosf(body->GetRotation()), sinf(body->GetRotation()) };
+
 		body->body->ApplyForceToCenter(speed * direction, true);
-		if (IsKeyDown(KEY_W) && speed < 150) speed++;
+		if (body->body->GetLinearVelocity() != {0,0}) body->body->ApplyForceToCenter((-maxspeed + speed) * direction, true);
+		if (IsKeyDown(KEY_W)) {
+			if (speed < maxspeed) speed++;
+		}
 		else if (speed>0) speed--;
 	}
 
