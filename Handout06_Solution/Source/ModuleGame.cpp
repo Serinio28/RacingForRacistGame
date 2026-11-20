@@ -220,7 +220,9 @@ class Coche : public PhysicEntity
 {
 public:
 	// Same push for every ball: a = F / m, heavier balls accelerate less
-	static constexpr float push_force = 100.0f; // N, to the right
+	static constexpr float push_force = 0.0f; // N, to the right
+	b2Vec2 direction = { 0, 1 };
+	float speed = 0;
 
 	// Seconds before the ball is destroyed
 	static constexpr double lifetime = 10.0;
@@ -299,6 +301,8 @@ public:
 
 		const char* text = TextFormat("%d kg", (int)mass);
 		DrawText(text, x - MeasureText(text, 20) / 2, y - 10, 20, BLACK);
+		body->body->ApplyForceToCenter(speed * direction, true);
+		if (IsKeyDown(KEY_W)&&speed<150) speed++;
 	}
 
 public:
@@ -475,10 +479,8 @@ update_status ModuleGame::Update()
 
 	// Every second, create a ball at the left of the screen, at a random height
 	// Random mass, from 1 kg to 100 kg
-	if (spawn_timer.ReadSec() >= 1.0)
+	if (balls.empty())
 	{
-		spawn_timer.Start();
-
 		float mass = (float)GetRandomValue(1, 100);
 		int radius = Ball::Radius(mass);
 
