@@ -304,7 +304,7 @@ public:
 		b2Vec2 direction = { cosf(body->GetRotation()), sinf(body->GetRotation()) };
 
 		body->body->ApplyForceToCenter(speed * direction, true);
-		if (body->body->GetLinearVelocity() != {0,0}) body->body->ApplyForceToCenter((-maxspeed + speed) * direction, true);
+		if (body->body->GetLinearVelocity().x+ body->body->GetLinearVelocity().y > 0) body->body->ApplyForceToCenter((-maxspeed + speed) * direction, true);
 		if (IsKeyDown(KEY_W)) {
 			if (speed < maxspeed) speed++;
 		}
