@@ -307,9 +307,9 @@ public:
 		body->body->SetAngularDamping(10);
 		if (IsKeyDown(KEY_W)) {
 			body->body->SetLinearDamping(1);
-			if (speed < maxspeed) speed++;
+			if (speed < maxspeed) speed+=0.1;
 		}
-		else if (speed>0) speed--;
+		else if (speed>0) speed-=0.5;
 		else {
 			body->body->SetLinearDamping(20);
 		}
