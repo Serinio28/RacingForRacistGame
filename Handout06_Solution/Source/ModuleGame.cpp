@@ -413,7 +413,6 @@ bool ModuleGame::Start()
 	spawn_timer.Start();
 
 	entities.push_back(new Coche(App->physics, 100, 100, Coche_Rojo));
-	entities.push_back(new Carretera(App->physics, 0, 0, rick));
 
 
 	return ret;
