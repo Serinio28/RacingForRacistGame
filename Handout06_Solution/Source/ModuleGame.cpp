@@ -303,7 +303,8 @@ public:
 
 		
 		body->body->ApplyForceToCenter(speed * direction, true);
-		if (IsKeyDown(KEY_W)&&speed<150) speed++;
+		if (IsKeyDown(KEY_W) && speed < 150) speed++;
+		else if (speed>0) speed--;
 	}
 
 public:
