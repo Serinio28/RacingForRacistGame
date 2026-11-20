@@ -31,6 +31,7 @@ public:
 	void DestroyBall(Ball* ball);
 
 	// NULL if pbody is not a ball
+	PhysicEntity* player = nullptr;
 	Ball* FindBall(PhysBody* pbody);
 	bool IsMerging(Ball* ball);
 	void DestroyAllEntities();
@@ -41,6 +42,7 @@ public:
 
 	Texture2D circle;
 	Texture2D box;
+
 	Texture2D rick;
 
 	uint32 bonus_fx;

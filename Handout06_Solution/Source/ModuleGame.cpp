@@ -216,43 +216,24 @@ private:
 
 
 
+
 class Coche : public PhysicEntity
 {
 public:
-	// Same push for every ball: a = F / m, heavier balls accelerate less
-	static constexpr float push_force = 100.0f; // N, to the right
 
-	// Seconds before the ball is destroyed
-	static constexpr double lifetime = 10.0;
+	Coche(ModulePhysics* physics, int _x, int _y, float _mass,
+		CarColor _color2, Texture2D _texture,
+		b2Vec2 velocity = b2Vec2_zero)
 
-	// TODO 1: Initial velocity, in m/s
-	// TODO 7: Send the collision filter of its colour
-	Coche(ModulePhysics* physics, int _x, int _y, float _mass, CarColor _color2, Texture2D _texture, b2Vec2 velocity = b2Vec2_zero)
-		: PhysicEntity(physics->CreateCircle(_x, _y, Radius(_mass), Density(_mass), Category(_color2), Mask(_color2), Group(_color2)))
+		: PhysicEntity(physics->CreateRectangle(_x, _y, 50, 80))
 		, mass(_mass)
 		, color2(_color2)
 		, texture(_texture)
 	{
 		body->body->SetLinearVelocity(velocity);
+		
 	}
 
-	// Heavier balls are bigger
-	// Same material: area grows with mass, so radius grows with sqrt(mass)
-	// 1 kg -> 10 px, 100 kg -> 100 px
-	static int Radius(float mass)
-	{
-		return (int)(10.0f * sqrtf(mass));
-	}
-
-	// mass = density * area, area in m^2
-	static float Density(float mass)
-	{
-		float radius = PIXEL_TO_METERS(Radius(mass));
-		return mass / (b2_pi * radius * radius);
-	}
-
-	// TODO 7: Red balls collide with red balls, ghosts and the scene. Same for blue
-	// Ghosts collide with everything
 	static uint16 Category(CarColor color2)
 	{
 		switch (color2)
@@ -273,7 +254,6 @@ public:
 		}
 	}
 
-	// TODO 8: Ghosts share a negative group: they never touch each other, whatever their mask says
 	static int16 Group(CarColor color2)
 	{
 		return (color2 == CAR_BLACK) ? GROUP_GHOSTS : 0;
@@ -294,18 +274,39 @@ public:
 		int x, y;
 		body->GetPosition(x, y);
 
-		int radius = Radius(mass);
+		Rectangle source = {
+			0.0f, 0.0f,
+			(float)texture.width,
+			(float)texture.height
+		};
 
+		Rectangle dest = {
+			(float)x, (float)y,
+			50.0f, 80.0f
+		};
+
+		Vector2 origin = { 25.0f, 40.0f };
+
+		DrawTexturePro(
+			texture,
+			source,
+			dest,
+			origin,
+			body->GetRotation() * RAD2DEG,
+			Tint()
+		);
 
 		const char* text = TextFormat("%d kg", (int)mass);
 		DrawText(text, x - MeasureText(text, 20) / 2, y - 10, 20, BLACK);
 	}
 
 public:
+
 	float mass;
 	CarColor color2;
 
 private:
+
 	Texture2D texture;
 };
 
@@ -403,9 +404,12 @@ bool ModuleGame::Start()
 	sensor = App->physics->CreateRectangleSensor(SCREEN_WIDTH / 2, SCREEN_HEIGHT, SCREEN_WIDTH / 2, 25);
 	sensor->listener = this;
 
-	spawn_timer.Start();
+	//spawn_timer.Start();
 
-	entities.push_back(new Carretera(App->physics, 0, 0, rick));
+	//entities.push_back(new Carretera(App->physics, 0, 0, rick));
+	// Crear el cuadrado controlable
+	player = new Box(App->physics, 100, SCREEN_HEIGHT / 2, box);
+	entities.push_back(player);
 
 
 	return ret;
@@ -431,7 +435,27 @@ bool ModuleGame::CleanUp()
 // Update: draw background
 update_status ModuleGame::Update()
 {
-	// Destroy the bodies that touched the sensor
+	// Mov vertical
+	if (IsKeyDown(KEY_W))
+	{
+		b2Vec2 velocity = player->body->body->GetLinearVelocity();
+		velocity.y = -5.0f;
+		player->body->body->SetLinearVelocity(velocity);
+	}
+	else if (IsKeyDown(KEY_S))
+	{
+		b2Vec2 velocity = player->body->body->GetLinearVelocity();
+		velocity.y = 5.0f;
+		player->body->body->SetLinearVelocity(velocity);
+	}
+	else
+	{
+		b2Vec2 velocity = player->body->body->GetLinearVelocity();
+		velocity.y = 0.0f;
+		player->body->body->SetLinearVelocity(velocity);
+	}
+
+	/* Destroy the bodies that touched the sensor
 	for (PhysBody* body : bodies_to_destroy)
 	{
 		for (PhysicEntity* entity : entities)
@@ -471,7 +495,7 @@ update_status ModuleGame::Update()
 	}
 	balls_to_merge.clear();
 
-	// Top view balls ------------------------------------------------------
+	// Top view balls------------------------------------------------------
 
 	// Every second, create a ball at the left of the screen, at a random height
 	// Random mass, from 1 kg to 100 kg
@@ -582,6 +606,7 @@ update_status ModuleGame::Update()
 				normal = hit_normal;
 			}
 		}
+		
 	}
 
 	// Show both coefficients at the bottom of the screen
@@ -601,6 +626,7 @@ update_status ModuleGame::Update()
 			DrawLine((int)(ray.x + destination.x), (int)(ray.y + destination.y), (int)(ray.x + destination.x + normal.x * 25.0f), (int)(ray.y + destination.y + normal.y * 25.0f), Color{ 100, 255, 100, 255 });
 		}
 	}
+	*/
 
 	return UPDATE_CONTINUE;
 }
@@ -689,4 +715,5 @@ void ModuleGame::DestroyAllEntities()
 
 	bodies_to_destroy.clear();
 	balls_to_merge.clear();
+	
 }
