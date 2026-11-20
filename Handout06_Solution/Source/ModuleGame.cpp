@@ -229,13 +229,12 @@ public:
 
 	// TODO 1: Initial velocity, in m/s
 	// TODO 7: Send the collision filter of its colour
-	Coche(ModulePhysics* physics, int _x, int _y, float _mass, CarColor _color2, Texture2D _texture, b2Vec2 velocity = b2Vec2_zero)
-		: PhysicEntity(physics->CreateCircle(_x, _y, Radius(_mass), Density(_mass), Category(_color2), Mask(_color2), Group(_color2)))
-		, mass(_mass)
-		, color2(_color2)
-		, texture(_texture)
+	Coche(ModulePhysics* physics, int _x, int _y, Texture2D _texture, b2Vec2 velocity = b2Vec2_zero)
+		: PhysicEntity(physics->CreateRectangle(_x, _y, 50, 25))
+		, Coche_Rojo(_texture)
 	{
 		body->body->SetLinearVelocity(velocity);
+
 	}
 
 	// Heavier balls are bigger
@@ -295,12 +294,14 @@ public:
 	{
 		int x, y;
 		body->GetPosition(x, y);
-
 		int radius = Radius(mass);
 
+		Rectangle source = { 0.0f, 0.0f, (float)Coche_Rojo.width, (float)Coche_Rojo.height };
+		Rectangle dest = { (float)x, (float)y, (float)Coche_Rojo.width, (float)Coche_Rojo.height };
+		Vector2 origin = { (float)Coche_Rojo.width / 2.0f, (float)Coche_Rojo.height / 2.0f };
+		DrawTexturePro(Coche_Rojo, source, dest, origin, body->GetRotation() * RAD2DEG, RED);
 
-		const char* text = TextFormat("%d kg", (int)mass);
-		DrawText(text, x - MeasureText(text, 20) / 2, y - 10, 20, BLACK);
+		
 		body->body->ApplyForceToCenter(speed * direction, true);
 		if (IsKeyDown(KEY_W)&&speed<150) speed++;
 	}
@@ -310,7 +311,7 @@ public:
 	CarColor color2;
 
 private:
-	Texture2D texture;
+	Texture2D Coche_Rojo;
 };
 
 
@@ -400,6 +401,7 @@ bool ModuleGame::Start()
 	circle = LoadTexture("Assets/wheel.png");
 	box = LoadTexture("Assets/crate.png");
 	rick = LoadTexture("Assets/rick_head.png");
+	Coche_Rojo = LoadTexture("Assets / coche_rojo.png");
 
 	bonus_fx = App->audio->LoadFx("Assets/bonus.wav");
 
@@ -409,6 +411,7 @@ bool ModuleGame::Start()
 
 	spawn_timer.Start();
 
+	entities.push_back(new Coche(App->physics, 100, 100, rick));
 	entities.push_back(new Carretera(App->physics, 0, 0, rick));
 
 
@@ -450,102 +453,7 @@ update_status ModuleGame::Update()
 	bodies_to_destroy.clear();
 
 	// TODO 3: Merge the balls that touched: destroy both, create one with the sum of the masses
-	for (const std::pair<Ball*, Ball*>& pair : balls_to_merge)
-	{
-		Ball* a = pair.first;
-		Ball* b = pair.second;
-
-		float mass = a->mass + b->mass;
-
-		// At the centre of mass of both
-		b2Vec2 position = (1.0f / mass) * (a->mass * a->body->body->GetPosition() + b->mass * b->body->body->GetPosition());
-
-		// TODO 4: Conservation of momentum: m1 * v1 + m2 * v2 = (m1 + m2) * v
-		b2Vec2 velocity = (1.0f / mass) * (a->mass * a->body->body->GetLinearVelocity() + b->mass * b->body->body->GetLinearVelocity());
-
-		BallColor color = a->color;
-		DestroyBall(a);
-		DestroyBall(b);
-
-		Ball* ball = new Ball(App->physics, METERS_TO_PIXELS(position.x), METERS_TO_PIXELS(position.y), mass, color, circle, velocity);
-		ball->body->listener = this;
-		balls.push_back(ball);
-
-		App->audio->PlayFx(bonus_fx);
-	}
-	balls_to_merge.clear();
-
-	// Top view balls ------------------------------------------------------
-
-	// Every second, create a ball at the left of the screen, at a random height
-	// Random mass, from 1 kg to 100 kg
-	if (balls.empty())
-	{
-		float mass = (float)GetRandomValue(1, 100);
-		int radius = Ball::Radius(mass);
-
-		// Keep it away from the sensor at the bottom
-		int y = GetRandomValue(radius, SCREEN_HEIGHT - 50 - radius);
-
-		BallColor color = (BallColor)GetRandomValue(BALL_RED, BALL_GHOST);
-
-		Ball* ball = new Ball(App->physics, radius, y, mass, color, circle);
-		ball->body->listener = this; // we want its collisions
-		balls.push_back(ball);
-	}
-
-	// Destroy the balls after 10 seconds
-	for (int i = (int)balls.size() - 1; i >= 0; --i)
-	{
-		if (balls[i]->life.ReadSec() >= Ball::lifetime)
-			DestroyBall(balls[i]);
-	}
-
-	for (Ball* ball : balls)
-	{
-		// Push each ball to the right with a constant force
-		b2Vec2 force(Ball::push_force, 0.0f);
-		ball->body->body->ApplyForceToCenter(force, true);
-
-		// Friction against the floor: static and dynamic
-		App->physics->ApplyFriction(ball->body, force);
-	}
-
-	// S increases the static friction coefficient. Past 1.0, back to 0
-	if (IsKeyPressed(KEY_S))
-	{
-		App->physics->static_friction += 0.1f;
-		if (App->physics->static_friction > 1.05f) // float sums: 1.0 may be 1.0000001
-			App->physics->static_friction = 0.0f;
-	}
-
-	// D increases the dynamic friction coefficient. Past 1.0, back to 0
-	if (IsKeyPressed(KEY_D))
-	{
-		App->physics->dynamic_friction += 0.1f;
-		if (App->physics->dynamic_friction > 1.05f)
-			App->physics->dynamic_friction = 0.0f;
-	}
-
-	if (IsKeyPressed(KEY_SPACE))
-	{
-		ray_on = !ray_on;
-		ray.x = GetMouseX();
-		ray.y = GetMouseY();
-	}
-
-	if (IsKeyPressed(KEY_ONE))
-	{
-		Circle* c = new Circle(App->physics, GetMouseX(), GetMouseY(), circle);
-		c->body->listener = this;
-		entities.push_back(c);
-	}
-
-	if (IsKeyPressed(KEY_TWO))
-	{
-		entities.push_back(new Box(App->physics, GetMouseX(), GetMouseY(), box));
-	}
-
+	
 	
 
 	if (IsKeyPressed(KEY_BACKSPACE))
