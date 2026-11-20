@@ -220,7 +220,9 @@ class Coche : public PhysicEntity
 {
 public:
 	// Same push for every ball: a = F / m, heavier balls accelerate less
-	static constexpr float push_force = 100.0f; // N, to the right
+	static constexpr float push_force = 0.0f; // N, to the right
+	b2Vec2 direction = { 0, 1 };
+	float speed = 0;
 
 	// Seconds before the ball is destroyed
 	static constexpr double lifetime = 10.0;
@@ -298,6 +300,10 @@ public:
 		Rectangle dest = { (float)x, (float)y, (float)Coche_Rojo.width, (float)Coche_Rojo.height };
 		Vector2 origin = { (float)Coche_Rojo.width / 2.0f, (float)Coche_Rojo.height / 2.0f };
 		DrawTexturePro(Coche_Rojo, source, dest, origin, body->GetRotation() * RAD2DEG, RED);
+
+		
+		body->body->ApplyForceToCenter(speed * direction, true);
+		if (IsKeyDown(KEY_W)&&speed<150) speed++;
 	}
 
 public:
