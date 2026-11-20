@@ -222,7 +222,7 @@ public:
 	// Same push for every ball: a = F / m, heavier balls accelerate less
 	static constexpr float push_force = 0.0f; // N, to the right
 	float speed = 0;
-	float maxspeed = 10;
+	float maxspeed = 30;
 
 	// Seconds before the ball is destroyed
 	static constexpr double lifetime = 10.0;
@@ -304,11 +304,17 @@ public:
 		b2Vec2 direction = { cosf(body->GetRotation()), sinf(body->GetRotation()) };
 
 		body->body->ApplyForceToCenter(speed * direction, true);
-		if (body->body->GetLinearVelocity().x+ body->body->GetLinearVelocity().y > 0) body->body->ApplyForceToCenter({ -body->body->GetLinearVelocity().x,  -body->body->GetLinearVelocity().y }, true);
+		body->body->SetAngularDamping(10);
 		if (IsKeyDown(KEY_W)) {
+			body->body->SetLinearDamping(1);
 			if (speed < maxspeed) speed++;
 		}
 		else if (speed>0) speed--;
+		else {
+			body->body->SetLinearDamping(20);
+		}
+		if (IsKeyDown(KEY_D)) body->body->ApplyAngularImpulse(0.5, true);
+		if (IsKeyDown(KEY_A)) body->body->ApplyAngularImpulse(-0.5, true);
 	}
 
 public:
