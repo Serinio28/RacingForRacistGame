@@ -306,8 +306,8 @@ public:
 		body->body->ApplyForceToCenter(speed * direction, true);
 		body->body->SetAngularDamping(10);
 		if (IsKeyDown(KEY_W)) {
-			body->body->SetLinearDamping(1);
 			if (IsKeyDown(KEY_LEFT_SHIFT)) body->body->SetLinearDamping(3);
+			else body->body->SetLinearDamping(1);
 			(speed < maxspeed/3) ? speed+=0.1 : (speed < maxspeed) ? speed+=0.5 : speed +=0.1;
 		}
 		else if (speed>0) speed-=0.5;
