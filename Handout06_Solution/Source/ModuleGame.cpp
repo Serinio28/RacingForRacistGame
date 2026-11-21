@@ -307,14 +307,15 @@ public:
 		body->body->SetAngularDamping(10);
 		if (IsKeyDown(KEY_W)) {
 			body->body->SetLinearDamping(1);
-			if (speed < maxspeed) speed+=0.1;
+			if (IsKeyDown(KEY_LEFT_SHIFT)) body->body->SetLinearDamping(3);
+			(speed < maxspeed/3) ? speed+=0.1 : (speed < maxspeed) ? speed+=0.5 : speed +=0.1;
 		}
 		else if (speed>0) speed-=0.5;
 		else {
 			body->body->SetLinearDamping(20);
 		}
-		if (IsKeyDown(KEY_D)) body->body->ApplyAngularImpulse(0.5, true);
-		if (IsKeyDown(KEY_A)) body->body->ApplyAngularImpulse(-0.5, true);
+		if (IsKeyDown(KEY_D)) body->body->ApplyAngularImpulse(0.3, true);
+		if (IsKeyDown(KEY_A)) body->body->ApplyAngularImpulse(-0.3, true);
 	}
 
 public:
