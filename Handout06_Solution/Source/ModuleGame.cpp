@@ -222,7 +222,7 @@ public:
 	// Same push for every ball: a = F / m, heavier balls accelerate less
 	static constexpr float push_force = 0.0f; // N, to the right
 	float speed = 0;
-	float maxspeed = 30;
+	float maxspeed = 10;
 
 	// Seconds before the ball is destroyed
 	static constexpr double lifetime = 10.0;
@@ -230,7 +230,7 @@ public:
 	// TODO 1: Initial velocity, in m/s
 	// TODO 7: Send the collision filter of its colour
 	Coche(ModulePhysics* physics, int _x, int _y, Texture2D _texture, b2Vec2 velocity = b2Vec2_zero)
-		: PhysicEntity(physics->CreateRectangle(_x, _y, 50, 25))
+		: PhysicEntity(physics->CreateRectangle(_x, _y, 16, 9))
 		, Coche_Rojo(_texture)
 	{
 		body->body->SetLinearVelocity(velocity);
@@ -305,17 +305,19 @@ public:
 
 		body->body->ApplyForceToCenter(speed * direction, true);
 		body->body->SetAngularDamping(10);
+		
 		if (IsKeyDown(KEY_W)) {
 			if (IsKeyDown(KEY_LEFT_SHIFT)) body->body->SetLinearDamping(3);
 			else body->body->SetLinearDamping(1);
-			(speed < maxspeed/3) ? speed+=0.1 : (speed < maxspeed) ? speed+=0.5 : speed +=0.1;
+			(speed < maxspeed/3) ? speed+=0.1 : (speed < maxspeed) ? speed+=0.5 : speed +=0.01;
 		}
 		else if (speed>0) speed-=0.5;
 		else {
-			body->body->SetLinearDamping(20);
+			body->body->SetLinearDamping(2);
 		}
-		if (IsKeyDown(KEY_D)) body->body->ApplyAngularImpulse(0.3, true);
-		if (IsKeyDown(KEY_A)) body->body->ApplyAngularImpulse(-0.3, true);
+		if (IsKeyDown(KEY_SPACE)) body->body->SetLinearDamping(20);
+		if (IsKeyDown(KEY_D)) body->body->ApplyAngularImpulse(0.03, true);
+		if (IsKeyDown(KEY_A)) body->body->ApplyAngularImpulse(-0.03, true);
 	}
 
 public:

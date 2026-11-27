@@ -249,7 +249,7 @@ PhysBody* ModulePhysics::CreateRectangle(int x, int y, int half_width, int half_
 
 	b2FixtureDef fixture;
 	fixture.shape = &box;
-	fixture.density = 1.0f;
+	fixture.density = 3.0f;
 
 	// TODO 6: Set the collision filter of the fixture
 	fixture.filter.categoryBits = category;
