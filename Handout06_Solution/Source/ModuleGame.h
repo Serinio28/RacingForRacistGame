@@ -43,6 +43,7 @@ public:
 	Texture2D box;
 	Texture2D rick;
 	Texture2D Coche_Rojo;
+	Texture2D carretera;
 
 	uint32 bonus_fx;
 

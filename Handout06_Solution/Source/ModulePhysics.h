@@ -58,7 +58,6 @@ public:
 	// TODO 6: Collision filter. category: what the body is. mask: what it collides with. group: overrides both
 	PhysBody* CreateCircle(int x, int y, int radius, float density = 1.0f, uint16 category = 0x0001, uint16 mask = 0xFFFF, int16 group = 0);
 	PhysBody* CreateRectangle(int x, int y, int half_width, int half_height, uint16 category = 0x0001, uint16 mask = 0xFFFF, int16 group = 0);
-	PhysBody* CreateRectangleSensor(int x, int y, int half_width, int half_height);
 	PhysBody* CreateChain(int x, int y, const int* points, int size);
 
 	void DestroyBody(PhysBody* pbody);

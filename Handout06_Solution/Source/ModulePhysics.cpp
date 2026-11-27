@@ -263,31 +263,6 @@ PhysBody* ModulePhysics::CreateRectangle(int x, int y, int half_width, int half_
 	return pbody;
 }
 
-// Static box that detects overlaps but does not collide (a trigger)
-PhysBody* ModulePhysics::CreateRectangleSensor(int x, int y, int half_width, int half_height)
-{
-	PhysBody* pbody = new PhysBody();
-
-	b2BodyDef body;
-	body.type = b2_staticBody;
-	body.position.Set(PIXEL_TO_METERS(x), PIXEL_TO_METERS(y));
-	body.userData.pointer = reinterpret_cast<uintptr_t>(pbody);
-
-	b2Body* b = world->CreateBody(&body);
-
-	b2PolygonShape box;
-	box.SetAsBox(PIXEL_TO_METERS(half_width), PIXEL_TO_METERS(half_height));
-
-	b2FixtureDef fixture;
-	fixture.shape = &box;
-	fixture.isSensor = true;
-	b->CreateFixture(&fixture);
-
-	pbody->body = b;
-
-	return pbody;
-}
-
 // size is the number of ints, not vertices
 PhysBody* ModulePhysics::CreateChain(int x, int y, const int* points, int size)
 {

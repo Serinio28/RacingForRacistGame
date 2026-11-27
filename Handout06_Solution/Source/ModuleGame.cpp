@@ -416,16 +416,15 @@ bool ModuleGame::Start()
 	box = LoadTexture("Assets/crate.png");
 	rick = LoadTexture("Assets/rick_head.png");
 	Coche_Rojo = LoadTexture("Assets/coche_rojo.png");
+	carretera = LoadTexture("Assets/carretera.jpg");
 
 	bonus_fx = App->audio->LoadFx("Assets/bonus.wav");
 
-	// Sensor at the bottom of the screen
-	sensor = App->physics->CreateRectangleSensor(SCREEN_WIDTH / 2, SCREEN_HEIGHT, SCREEN_WIDTH / 2, 25);
-	sensor->listener = this;
-
 	spawn_timer.Start();
-
+	
+	entities.push_back(new Carretera(App->physics, SCREEN_WIDTH/3, SCREEN_HEIGHT/3, carretera));
 	entities.push_back(new Coche(App->physics, 100, 100, Coche_Rojo));
+	
 
 
 	return ret;
@@ -444,6 +443,8 @@ bool ModuleGame::CleanUp()
 	UnloadTexture(circle);
 	UnloadTexture(box);
 	UnloadTexture(rick);
+	UnloadTexture(carretera);
+	UnloadTexture(Coche_Rojo);
 
 	return true;
 }
@@ -466,8 +467,6 @@ update_status ModuleGame::Update()
 	bodies_to_destroy.clear();
 
 	// TODO 3: Merge the balls that touched: destroy both, create one with the sum of the masses
-	
-	
 
 	if (IsKeyPressed(KEY_BACKSPACE))
 	{
